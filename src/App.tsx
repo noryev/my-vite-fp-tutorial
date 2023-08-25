@@ -13,8 +13,10 @@ const LIVE_QUERY = gql`
 `;
 
 function App() {
-  const response = useLiveQuery(LIVE_QUERY);
-  const todos = response.data?.todos || [];
+  function App() {
+
+  const response = useLiveQuery('date')
+  const todos = response.docs
   
   // Instead of using the useDocument hook directly in the onChange handler, 
   // set up a function to handle the update.
@@ -30,17 +32,17 @@ function App() {
     <div>
       <h1>Live Query Example</h1>
       <ul>
-        {todos.map(todo => (
-          <li key={todo.id}>
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              onChange={() => updateTodoCompletion(todo.id, todo.completed)}
-            />
-            {todo.text}
-          </li>
-        ))}
-      </ul>
+  {todos.map(todo => (
+    <li key={todo._id}>
+      <input
+        type="checkbox"
+        checked={todo.completed}
+        onChange={() => useLiveQuery.database.put({ ...todo, completed: !todo.completed })}
+      />
+      {todo.text}
+    </li>
+  ))}
+</ul>
     </div>
   );
 }
