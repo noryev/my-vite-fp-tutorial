@@ -1,35 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import './App.css';
+
+import { useLiveQuery, useDocument } from 'use-fireproof';
+
+const LIVE_QUERY = gql`
+  subscription {
+    todos {
+      id
+      text
+      completed
+    }
+  }
+`;
 
 function App() {
-  const [count, setCount] = useState(0)
+  const response = useLiveQuery(LIVE_QUERY);
+  const todos = response.data?.todos || [];
+  
+  // Instead of using the useDocument hook directly in the onChange handler, 
+  // set up a function to handle the update.
+  const updateTodoCompletion = (todoId, isCompleted) => {
+    const docRef = useDocument(`todos/${todoId}`);
+    docRef.update({ completed: !isCompleted });
+  };
+
+  if (response.loading) return <p>Loading...</p>;
+  if (response.error) return <p>Error: {response.error.message}</p>;
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>Live Query Example</h1>
+      <ul>
+        {todos.map(todo => (
+          <li key={todo.id}>
+            <input
+              type="checkbox"
+              checked={todo.completed}
+              onChange={() => updateTodoCompletion(todo.id, todo.completed)}
+            />
+            {todo.text}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default App
+export default App;
